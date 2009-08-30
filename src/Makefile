@@ -1,18 +1,4 @@
-TARGET=mouse
-
-# External programs
-CC=avr-gcc-43
-CXX=avr-g++-43
-AR=avr-ar
-OBJCOPY=avr-objcopy
-AVRDUDE=avrdude -F -V
-RM=rm -f
-
-# Upload configuration
-PORT=/dev/cuaU0
-BAUD=57600
-PROTOCOL=stk500v1
-PART=m328p
+include config.mk
 
 # Building configuration
 F_CPU=16000000UL
@@ -35,7 +21,7 @@ $(LIB_DIR)/Print.cpp $(LIB_DIR)/cxx_pure_virtual.cpp
 OBJ = $(SRC:.c=.o) $(CXXSRC:.cpp=.o)
 
 .PHONY: upload
-upload: $(TARGET).hex
+upload: $(target).hex
 	$(AVRDUDE) -c $(PROTOCOL) -p $(PART) -P $(PORT) -b $(BAUD) -U flash:w:$< -C $(CONFFILE)
 
 $(LIB): $(OBJ)
