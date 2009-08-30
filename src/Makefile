@@ -17,8 +17,8 @@ PART=m328p
 # Building configuration
 F_CPU=16000000UL
 MCU=atmega328p
-CFLAGS=-Wall -Os -DF_CPU=$(F_CPU) -mmcu=$(MCU) -Ilib/
-CXXFLAGS =-Wall -Os -DF_CPU=$(F_CPU) -mmcu=$(MCU) -Ilib/
+CFLAGS=-Wall -Os -DF_CPU=$(F_CPU) -mmcu=$(MCU)
+CXXFLAGS =-Wall -Os -DF_CPU=$(F_CPU) -mmcu=$(MCU)
 BIN_FORMAT=ihex
 CONFFILE=lib/avrdude.conf
 
@@ -34,23 +34,25 @@ $(LIB_DIR)/Print.cpp $(LIB_DIR)/cxx_pure_virtual.cpp
 
 OBJ = $(SRC:.c=.o) $(CXXSRC:.cpp=.o)
 
-$(LIB): $(OBJ)
-	@for i in $(OBJ); do echo $(AR) rcs $(LIB) $$i; $(AR) rcs $(LIB) $$i; done
-
-
-.PHONY: clean
-clean:
-	$(RM) *.hex *.s
-
 .PHONY: upload
 upload: $(TARGET).hex
 	$(AVRDUDE) -c $(PROTOCOL) -p $(PART) -P $(PORT) -b $(BAUD) -U flash:w:$< -C $(CONFFILE)
 
-%.hex: %.elf $(LIB) ; $(OBJCOPY) -O $(BIN_FORMAT) -R .eeprom $< $@
+$(LIB): $(OBJ)
+	@for i in $(OBJ); do echo $(AR) rcs $(LIB) $$i; $(AR) rcs $(LIB) $$i; done
 
-%.elf: %.s $(LIB) ; $(CXX) $(CFLAGS) -s -o $@ $< -L. $(LIB)
+.PHONY: clean clean-all
+clean:
+	$(RM) *.hex *.s *.elf
+clean-all: clean
+	$(RM) $(OBJ) $(LIB)
 
-%.s: %.c $(LIB) ; $(CXX) $(CFLAGS) -S -o $@ $<
-
+%.hex: %.elf
+	$(OBJCOPY) -O $(BIN_FORMAT) -R .eeprom $< $@
+%.elf: %.s $(LIB)
+	$(CXX) $(CFLAGS) -s -o $@ $< -L. $(LIB)
+%.s: %.c
+	$(CXX) $(CFLAGS) -S -o $@ $<
 %.c: %.pde
-	cat $< lib/main.cxx > $@
+	@echo '#include "lib/WProgram.h"' > $@
+	@cat $< lib/main.cxx >> $@

@@ -3,7 +3,6 @@
  * Also uses serial protocol to talk back to the host
  * and report what it finds.
  */
-#include <WProgram.h>
 /*
  * Pin 5 is the mouse data pin, pin 6 is the clock pin
  * Feel free to use whatever pins are convenient.
